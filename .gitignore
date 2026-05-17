@@ -34,6 +34,7 @@ data/
 *.duckdb.wal
 
 # IDE / OS
+.cursor/
 .idea/
 .vscode/
 *.swp
