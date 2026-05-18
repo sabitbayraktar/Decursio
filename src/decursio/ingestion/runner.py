@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 from decursio.config import Settings
+from decursio.ingestion.l2_replay import L2ReplayClient, load_snapshots_from_path
 from decursio.ingestion.polygon_stream import PolygonQuoteClient, PolygonStreamError
 from decursio.ingestion.synthetic_l2 import SyntheticL2Client
 from decursio.ingestion.tick import QuoteTick
@@ -50,6 +51,13 @@ def main() -> None:
         )
         sys.exit(1)
 
+    if settings.ingest_source == "replay" and not settings.replay_path:
+        print(
+            "DECURSIO_L2_REPLAY_PATH is not set. Point it at a .json or .jsonl snapshot file.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
     Path(settings.duckdb_path).parent.mkdir(parents=True, exist_ok=True)
     store = DuckDBStore(settings.duckdb_path)
     store.ensure_schema()
@@ -67,6 +75,26 @@ def main() -> None:
             interval_sec=settings.synthetic_interval_sec,
             depth=settings.synthetic_depth,
             seed=settings.synthetic_seed,
+        )
+        asyncio.run(client.run_forever())
+        return
+
+    if settings.ingest_source == "replay":
+        path = Path(settings.replay_path or "")
+        snapshots = load_snapshots_from_path(path)
+        logger.info(
+            "replaying %s snapshots from %s (loop=%s): %s",
+            len(snapshots),
+            path,
+            settings.replay_loop,
+            symbols_label,
+        )
+        client = L2ReplayClient(
+            snapshots,
+            on_quote=handle_quote,
+            symbols=settings.symbols,
+            interval_sec=settings.replay_interval_sec,
+            loop=settings.replay_loop,
         )
         asyncio.run(client.run_forever())
         return

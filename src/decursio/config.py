@@ -16,15 +16,26 @@ def _split_symbols(raw: str) -> list[str]:
 
 
 def _parse_ingest_source(raw: str, api_key: str | None) -> str:
-    """Resolve ingest source: synthetic, polygon, or auto (default)."""
+    """Resolve ingest source: synthetic, replay, polygon, or auto (default)."""
     value = (raw or "auto").strip().lower()
     if value == "auto":
         return "polygon" if api_key else "synthetic"
-    if value in ("synthetic", "polygon"):
+    if value in ("synthetic", "replay", "polygon"):
         return value
     raise ValueError(
-        f"DECURSIO_INGEST_SOURCE must be synthetic, polygon, or auto; got {raw!r}"
+        f"DECURSIO_INGEST_SOURCE must be synthetic, replay, polygon, or auto; got {raw!r}"
     )
+
+
+def _parse_bool(raw: str, *, default: bool) -> bool:
+    text = raw.strip().lower()
+    if not text:
+        return default
+    if text in ("1", "true", "yes", "on"):
+        return True
+    if text in ("0", "false", "no", "off"):
+        return False
+    raise ValueError(f"expected a boolean env value; got {raw!r}")
 
 
 def _parse_optional_int(raw: str) -> int | None:
@@ -46,6 +57,9 @@ class Settings:
     synthetic_interval_sec: float
     synthetic_seed: int | None
     synthetic_depth: int
+    replay_path: str | None
+    replay_interval_sec: float
+    replay_loop: bool
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -68,4 +82,7 @@ class Settings:
             synthetic_interval_sec=float(os.environ.get("DECURSIO_SYNTHETIC_INTERVAL_SEC", "0.5")),
             synthetic_seed=_parse_optional_int(os.environ.get("DECURSIO_SYNTHETIC_SEED", "")),
             synthetic_depth=int(os.environ.get("DECURSIO_SYNTHETIC_DEPTH", "5")),
+            replay_path=os.environ.get("DECURSIO_L2_REPLAY_PATH", "").strip() or None,
+            replay_interval_sec=float(os.environ.get("DECURSIO_REPLAY_INTERVAL_SEC", "0.5")),
+            replay_loop=_parse_bool(os.environ.get("DECURSIO_REPLAY_LOOP", ""), default=True),
         )

@@ -1,0 +1,10 @@
+{"symbol": "AAPL", "bids": [{"price": 190.00, "size": 520}, {"price": 189.99, "size": 300}], "asks": [{"price": 190.01, "size": 280}, {"price": 190.02, "size": 200}]}
+{"symbol": "AAPL", "bids": [{"price": 190.01, "size": 600}, {"price": 190.00, "size": 350}], "asks": [{"price": 190.02, "size": 250}, {"price": 190.03, "size": 180}]}
+{"symbol": "AAPL", "bids": [{"price": 190.02, "size": 450}, {"price": 190.01, "size": 320}], "asks": [{"price": 190.03, "size": 480}, {"price": 190.04, "size": 210}]}
+{"symbol": "AAPL", "bids": [{"price": 190.01, "size": 300}, {"price": 190.00, "size": 280}], "asks": [{"price": 190.02, "size": 550}, {"price": 190.03, "size": 240}]}
+{"symbol": "AAPL", "bids": [{"price": 190.00, "size": 250}, {"price": 189.99, "size": 220}], "asks": [{"price": 190.01, "size": 260}, {"price": 190.02, "size": 200}]}
+{"symbol": "AAPL", "bids": [{"price": 189.99, "size": 700}, {"price": 189.98, "size": 400}], "asks": [{"price": 190.00, "size": 320}, {"price": 190.01, "size": 190}]}
+{"symbol": "AAPL", "bids": [{"price": 190.00, "size": 380}, {"price": 189.99, "size": 290}], "asks": [{"price": 190.01, "size": 390}, {"price": 190.02, "size": 210}]}
+{"symbol": "AAPL", "bids": [{"price": 190.01, "size": 410}, {"price": 190.00, "size": 300}], "asks": [{"price": 190.02, "size": 620}, {"price": 190.03, "size": 230}]}
+{"symbol": "AAPL", "bids": [{"price": 190.02, "size": 500}, {"price": 190.01, "size": 330}], "asks": [{"price": 190.03, "size": 340}, {"price": 190.04, "size": 200}]}
+{"symbol": "AAPL", "bids": [{"price": 190.01, "size": 320}, {"price": 190.00, "size": 270}], "asks": [{"price": 190.02, "size": 310}, {"price": 190.03, "size": 195}]}
