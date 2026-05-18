@@ -27,6 +27,7 @@ dev = [
 [project.scripts]
 decursio-ingest = "decursio.ingestion.runner:main"
 decursio-dashboard = "decursio.dashboard.app:main"
+decursio-demo = "decursio.demo:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
