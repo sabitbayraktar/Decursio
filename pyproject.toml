@@ -15,6 +15,7 @@ dependencies = [
     "duckdb>=1.0.0",
     "plotly>=5.18.0",
     "python-dotenv>=1.0.0",
+    "pytz>=2024.1",
     "websockets>=12.0",
 ]
 
