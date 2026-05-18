@@ -5,10 +5,13 @@ from __future__ import annotations
 import asyncio
 import math
 import random
-from dataclasses import dataclass
-from typing import Any
 
-from decursio.ingestion.tick import QuoteHandler, QuoteTick
+from decursio.ingestion.l2_book import (
+    BookLevel,
+    L2Snapshot,
+    snapshot_to_quote_tick,
+)
+from decursio.ingestion.tick import QuoteHandler
 
 # Default mids when no per-symbol override is configured.
 _DEFAULT_MIDS: dict[str, float] = {
@@ -17,46 +20,6 @@ _DEFAULT_MIDS: dict[str, float] = {
     "GOOG": 175.0,
     "AMZN": 185.0,
 }
-
-
-@dataclass(frozen=True)
-class BookLevel:
-    price: float
-    size: int
-
-
-@dataclass(frozen=True)
-class L2Snapshot:
-    """Multi-level book snapshot; bids/asks are best-first."""
-
-    symbol: str
-    bids: tuple[BookLevel, ...]
-    asks: tuple[BookLevel, ...]
-
-
-def snapshot_to_raw(snapshot: L2Snapshot) -> dict[str, Any]:
-    return {
-        "source": "synthetic_l2",
-        "symbol": snapshot.symbol,
-        "bids": [{"price": lvl.price, "size": lvl.size} for lvl in snapshot.bids],
-        "asks": [{"price": lvl.price, "size": lvl.size} for lvl in snapshot.asks],
-    }
-
-
-def snapshot_to_quote_tick(snapshot: L2Snapshot) -> QuoteTick:
-    """Collapse an L2 snapshot to top-of-book for storage and imbalance."""
-    best_bid = snapshot.bids[0]
-    best_ask = snapshot.asks[0]
-    return QuoteTick(
-        symbol=snapshot.symbol,
-        bid_price=best_bid.price,
-        ask_price=best_ask.price,
-        bid_size=best_bid.size,
-        ask_size=best_ask.size,
-        exchange_bid=None,
-        exchange_ask=None,
-        raw=snapshot_to_raw(snapshot),
-    )
 
 
 class SyntheticL2Client:
@@ -132,5 +95,5 @@ class SyntheticL2Client:
         while True:
             for symbol in self._symbols:
                 snapshot = self.next_snapshot(symbol)
-                await self._on_quote(snapshot_to_quote_tick(snapshot))
+                await self._on_quote(snapshot_to_quote_tick(snapshot, source="synthetic_l2"))
             await asyncio.sleep(self._interval_sec)

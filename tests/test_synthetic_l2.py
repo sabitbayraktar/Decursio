@@ -1,13 +1,13 @@
 """Tests for synthetic L2 book generation."""
 
 from decursio.config import Settings, _parse_ingest_source
-from decursio.ingestion.synthetic_l2 import (
+from decursio.ingestion.l2_book import (
     BookLevel,
     L2Snapshot,
-    SyntheticL2Client,
     snapshot_to_quote_tick,
     snapshot_to_raw,
 )
+from decursio.ingestion.synthetic_l2 import SyntheticL2Client
 from decursio.signals.imbalance import top_of_book_imbalance
 
 
@@ -17,12 +17,12 @@ def test_snapshot_to_quote_tick_top_of_book() -> None:
         bids=(BookLevel(100.0, 500), BookLevel(99.99, 200)),
         asks=(BookLevel(100.01, 300), BookLevel(100.02, 150)),
     )
-    tick = snapshot_to_quote_tick(snap)
+    tick = snapshot_to_quote_tick(snap, source="synthetic_l2")
     assert tick.bid_price == 100.0
     assert tick.ask_price == 100.01
     assert tick.bid_size == 500
     assert tick.ask_size == 300
-    raw = snapshot_to_raw(snap)
+    raw = snapshot_to_raw(snap, source="synthetic_l2")
     assert raw["source"] == "synthetic_l2"
     assert len(raw["bids"]) == 2
 
@@ -35,7 +35,7 @@ def test_synthetic_imbalance_oscillates() -> None:
     imbalances = []
     for _ in range(30):
         snap = client.next_snapshot("AAPL")
-        tick = snapshot_to_quote_tick(snap)
+        tick = snapshot_to_quote_tick(snap, source="synthetic_l2")
         imbalances.append(top_of_book_imbalance(tick.bid_size, tick.ask_size))
     assert max(imbalances) > 0.1
     assert min(imbalances) < -0.1
