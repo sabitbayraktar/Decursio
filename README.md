@@ -4,7 +4,7 @@ Python toolkit for **order-book imbalance** signals: ingest top-of-book quotes (
 
 ## What you get
 
-- **Ingestion** — Default **synthetic L2** snapshots (no API key). Optional Polygon WebSocket `Q` (quotes) feed when you set `POLYGON_API_KEY`.
+- **Ingestion** — Default **synthetic L2** snapshots (no API key), **JSONL replay** from fixtures, or Polygon WebSocket when configured.
 - **Signals** — Top-of-book imbalance: \((\text{bid\_size} - \text{ask\_size}) / (\text{bid\_size} + \text{ask\_size})\) when depth is positive, else neutral.
 - **Storage** — DuckDB file with a typed `quotes` table and helpers for inserts and recent reads.
 - **Dashboard** — Dash app with a live-updating imbalance time series and a small recent-rows table.
@@ -27,7 +27,8 @@ Copy `.env.example` to `.env` if you want to tune paths or switch to Polygon.
 
 Optional variables (see `.env.example`):
 
-- `DECURSIO_INGEST_SOURCE` — `auto` (default), `synthetic`, or `polygon`
+- `DECURSIO_INGEST_SOURCE` — `auto` (default), `synthetic`, `replay`, or `polygon`
+- `DECURSIO_L2_REPLAY_PATH` — `.json` / `.jsonl` snapshot file when source is `replay`
 - `POLYGON_API_KEY` — required only for `polygon` (or `auto` when set)
 - `DECURSIO_SYNTHETIC_INTERVAL_SEC` — seconds between synthetic ticks (default `0.5`)
 - `DECURSIO_SYNTHETIC_DEPTH` — L2 levels per side (default `5`)
@@ -36,13 +37,13 @@ Optional variables (see `.env.example`):
 
 ## Run
 
-**Terminal 1 — ingest and persist**
+### Quick demo (recommended for local testing)
+
+**Terminal 1 — synthetic ingest (seeded, no config file required)**
 
 ```bash
-decursio-ingest
+decursio-demo
 ```
-
-Without `POLYGON_API_KEY`, this streams **synthetic L2** into DuckDB. Set `DECURSIO_INGEST_SOURCE=polygon` and `POLYGON_API_KEY` for live Polygon quotes.
 
 **Terminal 2 — dashboard**
 
@@ -50,13 +51,39 @@ Without `POLYGON_API_KEY`, this streams **synthetic L2** into DuckDB. Set `DECUR
 decursio-dashboard
 ```
 
-Open the URL printed in the log (typically `http://127.0.0.1:8050`).
+Open `http://127.0.0.1:8050`. The imbalance chart should update every ~0.5s.
+
+### Replay a fixture file
+
+**Terminal 1**
+
+```bash
+export DECURSIO_INGEST_SOURCE=replay
+export DECURSIO_L2_REPLAY_PATH=fixtures/demo_aapl.jsonl
+export DECURSIO_REPLAY_LOOP=true
+decursio-ingest
+```
+
+Each line in the JSONL file is one L2 snapshot:
+
+```json
+{"symbol": "AAPL", "bids": [{"price": 190.0, "size": 500}], "asks": [{"price": 190.01, "size": 300}]}
+```
+
+### Standard ingest
+
+```bash
+decursio-ingest
+```
+
+Without `POLYGON_API_KEY`, `auto` uses **synthetic L2**. Set `DECURSIO_INGEST_SOURCE=polygon` and `POLYGON_API_KEY` for live Polygon quotes.
 
 ## Layout
 
 | Path | Role |
 |------|------|
-| `src/decursio/ingestion/` | Synthetic L2 feed, Polygon WebSocket client, `runner` entrypoint |
+| `src/decursio/ingestion/` | L2 book types, synthetic feed, file replay, Polygon client |
+| `fixtures/` | Sample JSONL L2 snapshots for replay testing |
 | `src/decursio/signals/` | Imbalance and related signal helpers |
 | `src/decursio/storage/` | DuckDB schema, inserts, reads |
 | `src/decursio/dashboard/` | Dash application |
